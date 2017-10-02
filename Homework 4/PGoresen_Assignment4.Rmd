@@ -1,0 +1,59 @@
+---
+title: "PGoresen_Assignment4"
+author: "Patricia Goresen"
+date: "10/2/2017"
+output: 
+  html_document:
+    keep_md: true
+---
+
+# Question 1 
+###a: install fivethirtyeight package
+```{r, echo=TRUE}
+##install.packages("fivethirtyeight")
+library(fivethirtyeight)
+```
+
+###b: Assign eighteenth data set to object df
+```{r, echo=TRUE}
+data(package = "fivethirtyeight")
+df <- college_recent_grads
+```
+
+###c: Detailed list of the data sets to write out the URL in a comment to the related news story 
+```{r, echo=TRUE}
+#vignette("fivethirtyeight", package ="fivethirtyeight")
+```
+######The URL for this data set is http://fivethirtyeight.com/features/the-economic-guide-to-picking-a-college-major/
+
+###d: Dimensions and column names of df
+```{r, echo=TRUE}
+str(df)
+```
+#Question 2 
+
+###a: Column names of data and the number of columns
+```{r,echo=TRUE}
+colnames(df)
+ncol(df)
+```
+###b: Generating a count of each major category and assigning it to major_count 
+```{r,echo=TRUE}
+major_count <- table(df$major_category)
+major_count
+```
+###c: Barplot for major_counts
+```{r,echo=TRUE}
+par(las=2)
+barplot(major_count, xlab= "Major name", ylab= "Frequency", main = "Frequencies of Majors Carnevale et al", col= c(1:16), horiz = TRUE)
+```
+
+###d: Write fivethirtyeight data to a csv
+```{r,echo=TRUE}
+write.csv(df, file='College_Grads.csv', row.names = FALSE)
+```
+
+#Question 3
+### Link to github:
+####https://github.com/patriciagoresen/SMU-MSDS-Homework.git
+
