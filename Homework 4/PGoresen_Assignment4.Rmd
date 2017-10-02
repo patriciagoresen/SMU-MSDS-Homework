@@ -1,0 +1,33 @@
+---
+title: "PGoresen_Assignment4"
+author: "Patricia Goresen"
+date: "10/2/2017"
+output: 
+  html_document:
+    keep_md: true
+---
+
+# Question 1 
+```{r, echo=TRUE}
+#install.packages("fivethirtyeight")
+library(fivethirtyeight)
+data(package = "fivethirtyeight")
+df <- college_recent_grads
+#vignette("fivethirtyeight", package ="fivethirtyeight")
+#http://fivethirtyeight.com/features/the-economic-guide-to-picking-a-college-major/
+str(df)
+```
+#Question 2 
+```{r,echo=TRUE}
+colnames(df)
+ncol(df)
+major_count <- table(df$major_category)
+par(las=2)
+barplot(major_count, xlab= "Major name", ylab= "Frequency", main = "Frequencies of Majors Carnevale et al", col= c(1:16), horiz = TRUE)
+write.csv(df, file='College_Grads.csv', row.names = FALSE)
+```
+
+#Question 3
+
+####https://github.com/patriciagoresen/SMU-MSDS-Homework.git
+
