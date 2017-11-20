@@ -1,0 +1,78 @@
+---
+title: "PGoresen_Assignment9"
+author: "Patricia Goresen"
+date: "11/5/2017"
+output: 
+  html_document:
+    keep_md: TRUE
+---
+```{r, echo=TRUE}
+library(XML)
+library(plyr)
+library(data.table)
+library(tidyr)
+library(regexr)
+library(ggplot2)
+```
+## Question 1: Harry Potter Cast
+### a. Navigate to website
+```{r, echo=TRUE}
+fileURL <- "http://www.imdb.com/title/tt1201607/fullcredits?ref_=tt_ql_1"
+```
+### b. Scrape the Page
+```{r, echo=TRUE}
+UrlData <- readHTMLTable(fileURL, which=3)
+```
+### c. Clean out table
+```{r, echo=TRUE}
+#pulled out Cast in order of Crediting
+Cast <- UrlData[1:91,]
+#took out extra columns
+Cast <- subset(Cast, select=-c(V1,V3))
+#Changed Column names
+colnames(Cast) <- c("Actor", "Character")
+#Made his character column easier to read
+setDT(Cast)[Actor == 'Warwick Davis', Character := 'Griphook/ Professor Filius Flitwick']
+```
+### d.Split Actor Name by First Name and Last Name
+```{r, echo=TRUE}
+Cast <- extract(Cast, Actor, c("FirstName", "SurName"), "([^=]*) ([^=]*)")
+```
+### e. First ten rows
+```{r, echo=TRUE}
+head(Cast, n=10)
+```
+
+
+## Question 2: SportsBall
+### a. Navigate to Website
+```{r, echo=TRUE}
+NBAURL <- "http://www.espn.com/nba/team/stats/_/name/sa/san-antonio-spurs"
+```
+### b. Scrape Website
+```{r, echo=TRUE}
+NBAData <- readHTMLTable(NBAURL, which=2, header= TRUE)
+```
+### c. Clean up the table
+```{r, echo=TRUE}
+#rename Columns
+colnames(NBAData) <- c("PLAYER", "FGM", "FGA", "FGP", "3PM", "3PA", "3P%", "FTM", "FTA", "FT%", "2PM", "2PA", "2P%", "PPS", "AFG%")
+#get rid of first column and last column
+NBAData<- NBAData[2:15,]
+#Seperates Name and Position
+NBAData <- NBAData %>%
+ separate(PLAYER, c("Name", "Position"), ", ")
+#check data type of columns
+str(NBAData)
+#Change relevant columns to numeric
+for (i in 3:16) {
+     NBAData[, i] <- as.numeric(NBAData[, i])
+}
+str(NBAData)
+```
+### d. Bar Chart for FG%
+```{r, echo=TRUE}
+ggplot(NBAData, aes(y=FGP, x=Name)) + geom_bar(aes(fill=Position), colour="black", stat="identity") + ggtitle("Players Field Goal Percentages by Position") + theme(plot.title = element_text(hjust = 0.5)) + coord_flip() + labs(x= "Name of Player", y= "Field Goal Percentage Per Game")
+```
+
+
