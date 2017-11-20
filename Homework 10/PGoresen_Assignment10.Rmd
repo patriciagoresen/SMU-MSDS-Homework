@@ -1,0 +1,75 @@
+---
+title: "Assignment 10: VA Hospitals"
+author: "Patricia Goresen"
+date: "11/13/2017"
+output: 
+  html_document:
+    keep_md: true
+---
+# Question 1: Mental Health Clinics
+### a. Load the file into the global directory
+```{r question 1a}
+setwd("~/Desktop/MSDS 6306/Unit 10/Live Assignment")
+file <- "N-MHSS-2015-DS0001-bndl-data-r/N-MHSS-2015-DS0001-data/N-MHSS-2015-DS0001-data-r.rda"
+clinics <- get(load(file))
+```
+### b. List the State abbreviations without their counts
+```{r question 1b}
+attributes(clinics$LST)$levels
+```
+### c. Create a list of VA counts by state
+```{r  question 1c}
+#takes out whitespace and nonmainland
+MainlandFilter= trimws(clinics$LST) %in% c('AS', 'GU', 'PR', 'VI', 'HI', 'AK' )
+#takes out nonVA
+VAFilter= grepl('(VAMC)', clinics$FACILITYTYPE )
+#takes out both 
+MainlandVA<-clinics[VAFilter & !MainlandFilter, ]
+#Count Freq
+StateFreq<-data.frame(tapply(MainlandVA$CASEID, MainlandVA$LST, function(y) sum(!is.na(y), na.rm=TRUE)))
+StateFreq<-cbind.data.frame('State'=trimws(row.names(StateFreq)), 'Freq'=StateFreq[,1])
+StateFreq<-StateFreq[!(StateFreq$State %in% c('AS', 'GU', 'PR', 'VI', 'HI', 'AK' )),]
+```
+### d. Create a barchat of above data
+```{r question 1d}
+library(ggplot2)
+ggplot(StateFreq, aes(x=State, y=Freq))+ coord_flip() + ggtitle("Number of VA Medical Centers in Mainland States") + theme(plot.title = element_text(hjust = 0.5)) + geom_bar(aes(fill=State), colour="black", stat="identity") + labs(x= "State", y= "Number of VA Medical Centers") + guides(fill=FALSE) + scale_y_continuous(expand = c(0,0)) 
+```
+
+# Question 2: Cleaning and Bringing in New Features
+### a. Import statesize.csv and determine problem in pasting
+```{r question 2a}
+StateSize <- read.csv("statesize.csv")
+#Combines dataframes by State Abbreviations
+VAFreqAndSize <- merge(MainlandVA, StateSize, by.x = c("LST"), by.y= ("Abbrev"), all.x=TRUE)
+StatesinFirst=paste(MainlandVA$LST, sep=';')
+StatesinSecond=paste(StateSize$Abbrev, sep=';')
+StatesinFirst[1:10]
+StatesinSecond[1:10]
+#The problem is there is whitespace in the first dataset
+```
+
+### b. Correct the problem with LST column, then merge the data
+```{r question 2b}
+#trims whitespace in LST
+MainlandVA$LST=trimws(MainlandVA$LST)
+#combines dataframes by State Abbreviation
+VAFreqAndSize<-merge(MainlandVA, StateSize, by.x = 'LST', by.y = 'Abbrev', all.x = TRUE)
+```
+
+### c. Calculate a new variable which indicated the VA hospitals per thousand square miles
+```{r question 2c}
+#tells us relevancy per thousand
+VAFreqAndSize$HPSM <- 1000/VAFreqAndSize$SqMiles
+```
+
+### d. Create another ggplot which considers VA per thousand miles
+```{r question 2d}
+#combines by State and sums the hospitals
+HPSM <- aggregate(data = VAFreqAndSize, HPSM ~ StateName + Region, sum)
+
+ggplot(HPSM, aes(x= reorder(StateName, -HPSM), y=HPSM)) + coord_flip() + ggtitle("Number of VA Medical Centers in Mainland States Per Square Thousand Miles") + theme(plot.title = element_text(hjust = 0.5)) + geom_bar(aes(fill=Region), colour="black", stat="identity") + labs(x= "State", y= "VA Medical Centers Per Thousand Square Miles")  + scale_y_continuous(expand = c(0,0)) + scale_fill_manual(values=c("lightblue1", "palegreen", "sandybrown", "orchid3"))
+```
+
+### e. What patterns do you see?
+#### The Northeast seems to have the most VA hospitals per thousand square miles. The west seems to have the least hospitals per thousand square miles. I would suggest to my boss that the west needs help the most.
